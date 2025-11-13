@@ -1,0 +1,66 @@
+[
+  {
+    "tipo": "colchao",
+    "B1_DESC": "Colchão de Espuma D60 Force Dream da Ortobom - Solteiro",
+    "origem": "formulario"
+  },
+  {
+    "tipo": "kit",
+    "B1_DESC": "Cama Box Baú com Auxiliar + Colchão de Espuma D60 Force Dream da Ortobom - Solteiro + Preto",
+    "descricaoBase": "Cama Box Baú com Auxiliar",
+    "cor": "Preto"
+  },
+  {
+    "tipo": "kit",
+    "B1_DESC": "Cama Box Baú com Auxiliar + Colchão de Espuma D60 Force Dream da Ortobom - Solteiro + Branco",
+    "descricaoBase": "Cama Box Baú com Auxiliar",
+    "cor": "Branco"
+  },
+  {
+    "tipo": "kit",
+    "B1_DESC": "Cama Box Baú com Auxiliar + Colchão de Espuma D60 Force Dream da Ortobom - Solteiro + Marrom",
+    "descricaoBase": "Cama Box Baú com Auxiliar",
+    "cor": "Marrom"
+  },
+  {
+    "tipo": "kit",
+    "B1_DESC": "Cama Box Baú com Auxiliar + Colchão de Espuma D60 Force Dream da Ortobom - Solteiro + Bege",
+    "descricaoBase": "Cama Box Baú com Auxiliar",
+    "cor": "Bege"
+  },
+  {
+    "tipo": "kit",
+    "B1_DESC": "Cama Box Baú com Auxiliar + Colchão de Espuma D60 Force Dream da Ortobom - Solteiro + Multicolor",
+    "descricaoBase": "Cama Box Baú com Auxiliar",
+    "cor": "Multicolor"
+  },
+  {
+    "tipo": "colchao",
+    "B1_DESC": "Colchão de Espuma D60 Force Dream da Ortobom - Solteiro",
+    "origem": "formulario"
+  },
+  {
+    "tipo": "kit",
+    "B1_DESC": "Cama Box Baú com Auxiliar + Colchão de Espuma D60 Force Dream da Ortobom - Solteiro + Preto",
+    "descricaoBase": "Cama Box Baú com Auxiliar",
+    "cor": "Preto"
+  },
+  {
+    "tipo": "kit",
+    "B1_DESC": "Cama Box Baú com Auxiliar + Colchão de Espuma D60 Force Dream da Ortobom - Solteiro + Branco",
+    "descricaoBase": "Cama Box Baú com Auxiliar",
+    "cor": "Branco"
+  },
+  {
+    "tipo": "kit",
+    "B1_DESC": "Cama Box + Colchão de Espuma D60 Force Dream da Ortobom - Solteiro + Branco",
+    "descricaoBase": "Cama Box",
+    "cor": "Branco"
+  },
+  {
+    "tipo": "kit",
+    "B1_DESC": "Cama Box + Colchão de Espuma D60 Force Dream da Ortobom - Solteiro + Marrom",
+    "descricaoBase": "Cama Box",
+    "cor": "Marrom"
+  }
+]
