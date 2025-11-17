@@ -903,50 +903,10 @@ export default function PaginaCadastro() {
           </Form>
         </section>
 
+        </div>
+        <div className="space-y-6">
+
         <section className="rounded-2xl border bg-card p-6 shadow-sm">
-          <h2 className="text-xl font-semibold">Pre-visualizacao</h2>
-          <p className="mb-6 text-sm text-muted-foreground">
-            Os nomes sao atualizados conforme o preenchimento do formulario.
-          </p>
-
-          {descricoes ? (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm uppercase text-muted-foreground">Colchoes avulsos</h3>
-                <ul className="mt-2 space-y-2 text-sm">
-                  {descricoes.colchoes.map((colchao) => (
-                    <li key={`${colchao.medida}-${colchao.dimensoes}`} className="rounded-lg border p-3">
-                      <p className="font-medium">{colchao.nomeCompleto}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Código: {CODIGO_PADRAO} | B1_XCODANT: {geradorSequencialPreview.proximo()} | Altura: {colchao.alturaColchao} cm | Medida: {colchao.rotuloMedida} | Cor: {colchao.cor} ({colchao.corCodigo}) | EAN: {gerarEan13(geradorSequencialPreview.atual())}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-sm uppercase text-muted-foreground">Kits combinados</h3>
-                <ul className="mt-2 space-y-2 text-sm">
-                  {descricoes.kits.map((kit, index) => (
-                    <li key={`${kit.descricaoBase}-${kit.cor}-${kit.medida}-${index}`} className="rounded-lg border p-3">
-                      <p className="font-medium">{kit.nomeCompleto}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Código: {CODIGO_PADRAO} | B1_XCODANT: {geradorSequencialPreview.proximo()} | Base: {kit.descricaoBase} ({kit.alturaBase} cm)
-                        {kit.auxiliarLabel ? ` | ${kit.auxiliarLabel}` : ""} | Cor: {kit.cor} ({kit.corCodigo}) | Altura total:{" "} 
-                        {kit.alturaTotal} cm | EAN: {gerarEan13(geradorSequencialPreview.atual())}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Preencha o formulario para ver os resultados.</p>
-          )}
-          </section>
-
-          <section className="rounded-2xl border bg-card p-6 shadow-sm">
             <h2 className="text-xl font-semibold">Rascunhos salvos</h2>
             <p className="text-sm text-muted-foreground mb-4">
               Salve combinacoes para reutilizar depois sem refazer todo o preenchimento.
@@ -1002,6 +962,49 @@ export default function PaginaCadastro() {
             ) : (
               <p className="mt-4 text-sm text-muted-foreground">Nenhum rascunho salvo ainda.</p>
             )}
+          </section>
+         
+        <section className="rounded-2xl border bg-card p-6 shadow-sm">
+          <h2 className="text-xl font-semibold">Pre-visualizacao</h2>
+          <p className="mb-6 text-sm text-muted-foreground">
+            Os nomes sao atualizados conforme o preenchimento do formulario.
+          </p>
+
+          {descricoes ? (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-sm uppercase text-muted-foreground">Colchoes avulsos</h3>
+                <ul className="mt-2 space-y-2 text-sm">
+                  {descricoes.colchoes.map((colchao) => (
+                    <li key={`${colchao.medida}-${colchao.dimensoes}`} className="rounded-lg border p-3">
+                      <p className="font-medium">{colchao.nomeCompleto}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Código: {CODIGO_PADRAO} | B1_XCODANT: {geradorSequencialPreview.proximo()} | Altura: {colchao.alturaColchao} cm | Medida: {colchao.rotuloMedida} | Cor: {colchao.cor} ({colchao.corCodigo}) | EAN: {gerarEan13(geradorSequencialPreview.atual())}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-sm uppercase text-muted-foreground">Kits combinados</h3>
+                <ul className="mt-2 space-y-2 text-sm">
+                  {descricoes.kits.map((kit, index) => (
+                    <li key={`${kit.descricaoBase}-${kit.cor}-${kit.medida}-${index}`} className="rounded-lg border p-3">
+                      <p className="font-medium">{kit.nomeCompleto}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Código: {CODIGO_PADRAO} | B1_XCODANT: {geradorSequencialPreview.proximo()} | Base: {kit.descricaoBase} ({kit.alturaBase} cm)
+                        {kit.auxiliarLabel ? ` | ${kit.auxiliarLabel}` : ""} | Cor: {kit.cor} ({kit.corCodigo}) | Altura total:{" "} 
+                        {kit.alturaTotal} cm | EAN: {gerarEan13(geradorSequencialPreview.atual())}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Preencha o formulario para ver os resultados.</p>
+          )}
           </section>
         </div>
       </div>
