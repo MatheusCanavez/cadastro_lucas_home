@@ -1,5 +1,6 @@
 export type TipoProduto = "colchao" | "baseBox" | "baseBoxBau"
 export type TipoColchao =
+  | "espuma"
   | "espumaD28"
   | "espumaD33"
   | "espumaD45"
@@ -13,8 +14,11 @@ export type Medida =
   | "queen"
   | "king"
 
+import { opcoesCores, opcoesVariacoesBase, variacoesBasePadrao } from "@/data/opcoes"
+import type { ValorVariacaoBase } from "@/data/opcoes"
+
 export interface VariacaoBase {
-  descricao: string
+  variacaoId: ValorVariacaoBase
   cores: string[]
 }
 
@@ -23,11 +27,18 @@ export interface DadosFormulario {
   tipoColchao: TipoColchao
   nomeLinha: string
   marca: string
-  medida: Medida
-  variacoesBase: VariacaoBase[]
+  corColchao: string
+  medidas: Medida[]
+  alturaColchao: number
+  pillowOpcoes: string[]
+  usarCamaBox: boolean
+  usarCamaBoxBau: boolean
+  coresBasePadrao: string[]
+  variacoesAuxiliares: VariacaoBase[]
 }
 
 const mapaTipoColchao: Record<TipoColchao, string> = {
+  espuma: "Espuma",
   espumaD28: "Espuma D28",
   espumaD33: "Espuma D33",
   espumaD45: "Espuma D45",
@@ -35,52 +46,147 @@ const mapaTipoColchao: Record<TipoColchao, string> = {
   molasEnsacadas: "Molas Ensacadas",
 }
 
-const mapaMedida: Record<Medida, string> = {
-  solteirinho: "Solteirinho",
-  solteiro: "Solteiro",
-  solteiroKing: "Solteiro King",
-  casal: "Casal",
-  queen: "Queen",
-  king: "King",
+const mapaMedidas: Record<
+  Medida,
+  {
+    rotulo: string
+    dimensoes: string
+  }
+> = {
+  solteirinho: { rotulo: "Solteirinho", dimensoes: "78x188" },
+  king: { rotulo: "King", dimensoes: "193x203" },
+  solteiroKing: { rotulo: "Solteiro King", dimensoes: "96x203" },
+  solteiro: { rotulo: "Solteiro", dimensoes: "88x188" },
+  casal: { rotulo: "Casal", dimensoes: "138x188" },
+  queen: { rotulo: "Queen", dimensoes: "158x198" },
 }
 
 const mapaTipoProduto: Record<TipoProduto, string> = {
-  colchao: "Colchão",
+  colchao: "Colchao",
   baseBox: "Base Box",
-  baseBoxBau: "Base Box Baú",
+  baseBoxBau: "Base Box Bau",
 }
 
 const normalizarEspacos = (texto: string) => texto.replace(/\s+/g, " ").trim()
 
-export function montarNomeColchao(dados: DadosFormulario) {
-  const tipoProduto = mapaTipoProduto.colchao
-  const tipoColchao = mapaTipoColchao[dados.tipoColchao]
-  const medida = mapaMedida[dados.medida]
-  const nome = `${tipoProduto} de ${tipoColchao} ${dados.nomeLinha} da ${dados.marca} - ${medida}`
-  return normalizarEspacos(nome)
+const descricaoBaseColchao = (dados: DadosFormulario) =>
+  normalizarEspacos(
+    `${mapaTipoProduto.colchao} de ${mapaTipoColchao[dados.tipoColchao]} ${
+      dados.pillowOpcoes.length ? `${dados.pillowOpcoes.join(" ")} ` : ""
+    }${dados.nomeLinha} da ${dados.marca}`,
+  )
+
+const mapaVariacoes = opcoesVariacoesBase.reduce<Record<string, (typeof opcoesVariacoesBase)[number]>>(
+  (acc, variacao) => {
+    acc[variacao.valor] = variacao
+    return acc
+  },
+  {},
+)
+
+export interface NomeColchao {
+  medida: Medida
+  rotuloMedida: string
+  dimensoes: string
+  alturaColchao: number
+  cor: string
+  corCodigo: string
+  nomeCompleto: string
+}
+
+const mapaCores = opcoesCores.reduce<Record<string, string>>((acc, cor) => {
+  acc[cor.codigo] = cor.rotulo
+  return acc
+}, {})
+
+export function montarNomesColchoes(dados: DadosFormulario): NomeColchao[] {
+  const descricao = descricaoBaseColchao(dados)
+  return dados.medidas.map((medida) => {
+    const { rotulo, dimensoes } = mapaMedidas[medida]
+    const corRotulo = mapaCores[dados.corColchao] ?? dados.corColchao
+    const nomeCompleto = normalizarEspacos(
+      `${descricao} ${rotulo} ${dimensoes}x${dados.alturaColchao}cm - ${corRotulo}`,
+    )
+    return {
+      medida,
+      rotuloMedida: rotulo,
+      dimensoes,
+      alturaColchao: dados.alturaColchao,
+      cor: corRotulo,
+      corCodigo: dados.corColchao,
+      nomeCompleto,
+    }
+  })
 }
 
 export interface NomeKit {
   descricaoBase: string
   cor: string
+  corCodigo: string
+  alturaBase: number
+  alturaTotal: number
+  auxiliarLabel?: string
+  variacaoId: string
+  medida: Medida
+  rotuloMedida: string
+  dimensoes: string
   nomeCompleto: string
 }
 
 export function montarNomesKits(dados: DadosFormulario): NomeKit[] {
   const nomes: NomeKit[] = []
-  const descricaoColchao = montarNomeColchao(dados).replace(/^Colchão de\s*/i, "Colchão de ")
+  const descricao = descricaoBaseColchao(dados)
+  const colchoes = montarNomesColchoes(dados)
 
-  dados.variacoesBase.forEach((variacao) => {
-    variacao.cores.forEach((cor) => {
-      const nomeCompleto = normalizarEspacos(
-        `${variacao.descricao} ${descricaoColchao} - ${cor}`,
-      )
-      nomes.push({
-        descricaoBase: variacao.descricao,
-        cor,
-        nomeCompleto,
+  const adicionarVariacao = (info: (typeof opcoesVariacoesBase)[number], cores: string[]) => {
+    if (!info || cores.length === 0) return
+    const coresValidas = info.coresPermitidas?.length
+      ? cores.filter((codigo) => info.coresPermitidas?.includes(codigo))
+      : cores
+    if (!coresValidas.length) return
+    const colchoesValidos = info.exigeMedidaSolteiro
+      ? colchoes.filter((colchao) => colchao.medida === "solteiro")
+      : colchoes
+    if (!colchoesValidos.length) {
+      return
+    }
+    coresValidas.forEach((codigoCor) => {
+      const corRotulo = mapaCores[codigoCor] ?? codigoCor
+      colchoesValidos.forEach((colchao) => {
+        const alturaTotal = info.altura + colchao.alturaColchao
+        const auxiliarTexto = info.auxiliarLabel ? ` + ${info.auxiliarLabel}` : ""
+        const nomeCompleto = normalizarEspacos(
+          `${info.baseLabel} com ${descricao}${auxiliarTexto} ${colchao.rotuloMedida} ${colchao.dimensoes}x${alturaTotal}cm - ${corRotulo}`,
+        )
+        nomes.push({
+          descricaoBase: info.rotulo,
+          cor: corRotulo,
+          corCodigo: codigoCor,
+          alturaBase: info.altura,
+          alturaTotal,
+          auxiliarLabel: info.auxiliarLabel,
+          variacaoId: info.valor,
+          medida: colchao.medida,
+          rotuloMedida: colchao.rotuloMedida,
+          dimensoes: colchao.dimensoes,
+          nomeCompleto,
+        })
       })
     })
+  }
+
+  if (dados.usarCamaBox) {
+    adicionarVariacao(variacoesBasePadrao.find((item) => item.valor === "cama-box")!, dados.coresBasePadrao)
+  }
+
+  if (dados.usarCamaBoxBau) {
+    adicionarVariacao(variacoesBasePadrao.find((item) => item.valor === "cama-box-bau")!, dados.coresBasePadrao)
+  }
+
+  dados.variacoesAuxiliares.forEach((variacao) => {
+    const info = mapaVariacoes[variacao.variacaoId]
+    if (!info) return
+    adicionarVariacao(info, variacao.cores)
   })
 
   return nomes
@@ -88,7 +194,7 @@ export function montarNomesKits(dados: DadosFormulario): NomeKit[] {
 
 export function montarDescricoesCompletas(dados: DadosFormulario) {
   return {
-    nomeColchao: montarNomeColchao(dados),
+    colchoes: montarNomesColchoes(dados),
     kits: montarNomesKits(dados),
   }
 }

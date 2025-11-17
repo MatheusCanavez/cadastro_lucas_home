@@ -1,0 +1,420 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useFieldArray, useForm } from "react-hook-form"
+import { z } from "zod"
+
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { montarDescricoesCompletas, type DadosFormulario } from "@/lib/nomear-produto"
+import type { RegistroProduto } from "@/lib/csv"
+import {
+  opcoesCoresBase,
+  opcoesMedidas,
+  opcoesTipoColchao,
+  opcoesTipoProduto,
+  opcoesVariacoesBase,
+} from "@/data/opcoes"
+import type { ValorVariacaoBase } from "@/data/opcoes"
+
+const CODIGO_PADRAO = "XXX"
+
+const criarGeradorSequencial = (ultimoNumero: number) => {
+  let sequencia = Number.isFinite(ultimoNumero) ? ultimoNumero : 0
+  return {
+    proximo: () => {
+      sequencia += 1
+      return sequencia
+    },
+    atual: () => sequencia,
+  }
+}
+
+const criarVariacoesPadrao = () =>
+  opcoesVariacoesBase.map((variacao) => ({
+    variacaoId: variacao.valor,
+    cores: [],
+  }))
+
+const mapaVariacoesBase = opcoesVariacoesBase.reduce<
+  Record<ValorVariacaoBase, (typeof opcoesVariacoesBase)[number]>
+>((acc, variacao) => {
+  acc[variacao.valor] = variacao
+  return acc
+}, {} as Record<ValorVariacaoBase, (typeof opcoesVariacoesBase)[number]>)
+
+const valoresVariacoes = opcoesVariacoesBase.map((opcao) => opcao.valor) as [
+  ValorVariacaoBase,
+  ...ValorVariacaoBase[],
+]
+const variacaoEnum = z.enum(valoresVariacoes)
+
+const esquemaVariacao = z.object({
+  variacaoId: variacaoEnum,
+  cores: z.array(z.string()).min(1, "Selecione ao menos uma cor"),
+})
+
+const valoresMedidas = ["solteirinho", "solteiro", "solteiroKing", "casal", "queen", "king"] as const
+const medidasEnum = z.enum(valoresMedidas)
+
+const esquemaFormulario = z.object({
+  tipoProduto: z.enum(["colchao", "baseBox", "baseBoxBau"]),
+  tipoColchao: z.enum(["espumaD28", "espumaD33", "espumaD45", "espumaD60", "molasEnsacadas"]),
+  nomeLinha: z.string().min(1, "Informe o nome da linha"),
+  marca: z.string().min(1, "Informe a marca"),
+  sequencialInicial: z.coerce.number().min(0, "Informe o ultimo codigo sequencial"),
+  alturaColchao: z.coerce.number().min(5, "Informe a altura do colchao em cm"),
+  medidas: z.array(medidasEnum).min(1, "Selecione ao menos uma medida"),
+  variacoesBase: z.array(esquemaVariacao).min(1, "Adicione ao menos uma variacao"),
+})
+
+type ValoresFormulario = z.infer<typeof esquemaFormulario>
+
+export default function PaginaCadastro() {
+  const [estadoEnvio, setEstadoEnvio] = useState<"idle" | "enviando" | "ok" | "erro">("idle")
+  const form = useForm<ValoresFormulario>({
+    resolver: zodResolver(esquemaFormulario),
+    defaultValues: {
+      tipoProduto: "colchao",
+      tipoColchao: "espumaD60",
+      nomeLinha: "",
+      marca: "",
+      sequencialInicial: 0,
+      alturaColchao: 20,
+      medidas: ["solteiro"],
+      variacoesBase: criarVariacoesPadrao(),
+    },
+  })
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "variacoesBase",
+  })
+
+  const dadosObservados = form.watch()
+
+  const descricoes = useMemo(() => {
+    const validacao = esquemaFormulario.safeParse(dadosObservados)
+    if (!validacao.success) {
+      return null
+    }
+    return montarDescricoesCompletas(validacao.data as DadosFormulario)
+  }, [dadosObservados])
+
+  const baseSequencialPreview = Number.isFinite(Number(dadosObservados?.sequencialInicial))
+    ? Number(dadosObservados.sequencialInicial)
+    : 0
+  const geradorSequencialPreview = criarGeradorSequencial(baseSequencialPreview)
+
+  async function aoEnviar(dados: ValoresFormulario) {
+    try {
+      setEstadoEnvio("enviando")
+      const nomes = montarDescricoesCompletas(dados as DadosFormulario)
+      const geradorSequencial = criarGeradorSequencial(dados.sequencialInicial)
+      const registros: RegistroProduto[] = [
+        ...nomes.colchoes.map((colchao) => ({
+          tipo: "colchao",
+          B1_DESC: colchao.nomeCompleto,
+          B1_COD: CODIGO_PADRAO,
+          B1_XCODANT: geradorSequencial.proximo(),
+          medida: colchao.rotuloMedida,
+          dimensoes: colchao.dimensoes,
+          alturaColchao: colchao.alturaColchao,
+          origem: "formulario",
+        })),
+        ...nomes.kits.map((kit) => ({
+          tipo: "kit",
+          B1_DESC: kit.nomeCompleto,
+          B1_COD: CODIGO_PADRAO,
+          B1_XCODANT: geradorSequencial.proximo(),
+          descricaoBase: kit.descricaoBase,
+          cor: kit.cor,
+          medida: kit.rotuloMedida,
+          dimensoes: kit.dimensoes,
+          alturaBase: kit.alturaBase,
+          alturaTotal: kit.alturaTotal,
+        })),
+      ]
+
+      const resposta = await fetch("/api/produtos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(registros),
+      })
+
+      if (!resposta.ok) {
+        const mensagem = await resposta.text()
+        throw new Error(mensagem || "Erro ao salvar no banco local")
+      }
+
+      setEstadoEnvio("ok")
+      form.reset({
+        ...dados,
+        sequencialInicial: geradorSequencial.atual(),
+      })
+    } catch (erro) {
+      console.error(erro)
+      setEstadoEnvio("erro")
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-background py-10">
+      <div className="container mx-auto grid gap-6 px-4 md:grid-cols-2">
+        <section className="rounded-2xl border bg-card p-6 shadow-sm">
+          <div className="mb-6 space-y-1">
+            <p className="text-xs uppercase text-muted-foreground">Cadastro</p>
+            <h1 className="text-2xl font-semibold">Gerar descricoes</h1>
+            <p className="text-sm text-muted-foreground">
+              Preencha as informacoes para montar o nome dos produtos e suas variacoes.
+            </p>
+          </div>
+
+          <Form {...form}>
+            <form className="space-y-6" onSubmit={form.handleSubmit(aoEnviar)}>
+              <FormField
+                control={form.control}
+                name="tipoProduto"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo do produto</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {opcoesTipoProduto.map((opcao) => (
+                          <SelectItem key={opcao.valor} value={opcao.valor}>
+                            {opcao.rotulo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tipoColchao"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo do colchao</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="grid gap-3"
+                      >
+                        {opcoesTipoColchao.map((opcao) => (
+                          <FormItem
+                            key={opcao.valor}
+                            className="flex items-center space-x-3 space-y-0 rounded-lg border p-3"
+                          >
+                            <FormControl>
+                              <RadioGroupItem value={opcao.valor} />
+                            </FormControl>
+                            <FormLabel className="cursor-pointer font-normal">{opcao.rotulo}</FormLabel>
+                          </FormItem>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="nomeLinha"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da linha</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Force Dream" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="marca"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Marca</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ortobom" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="sequencialInicial"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código sequencial inicial (B1_XCODANT)</FormLabel>
+                    <FormDescription>
+                      Informe o último número já utilizado no ERP. Os próximos serão calculados automaticamente.
+                    </FormDescription>
+                    <FormControl>
+                      <Input type="number" min={0} step="1" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="alturaColchao"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Altura do colchao (cm)</FormLabel>
+                    <FormControl>
+                      <Input type="number" min={5} step="1" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="medidas"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Medidas</FormLabel>
+                    <div className="grid grid-cols-2 gap-3">
+                      {opcoesMedidas.map((opcao) => {
+                        const selecionada = field.value?.includes(opcao.valor) ?? false
+                        return (
+                          <label
+                            key={opcao.valor}
+                            className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm"
+                          >
+                            <Checkbox
+                              checked={selecionada}
+                              onCheckedChange={(checado) => {
+                                const proximo = new Set(field.value ?? [])
+                                if (checado === true) {
+                                  proximo.add(opcao.valor)
+                                } else {
+                                  proximo.delete(opcao.valor)
+                                }
+                                field.onChange(Array.from(proximo))
+                              }}
+                            />
+                            <span className="flex flex-col">
+                              <span className="font-medium">{opcao.rotulo}</span>
+                              <span className="text-xs text-muted-foreground">{opcao.dimensoes} cm</span>
+                            </span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-lg font-semibold">Variacoes de base</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Escolha os tipos de base e as cores disponiveis para cada combinacao.
+                  </p>
+                </div>
+
+                {fields.map((fieldItem, index) => (
+                  <div key={fieldItem.id} className="space-y-4 rounded-xl border p-4">
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Variacao #{index + 1}</FormLabel>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => remove(index)}
+                        disabled={fields.length === 1}
+                      >
+                        Remover
+                      </Button>
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name={`variacoesBase.${index}.descricao`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Descricao</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Escolha uma variacao" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {opcoesVariacoesBase.map((opcao) => (
+                                <SelectItem key={opcao.valor} value={opcao.valor}>
+                                  {opcao.rotulo}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`variacoesBase.${index}.cores`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cores</FormLabel>
+                          <div className="grid grid-cols-2 gap-3">
+                            {opcoesCoresBase.map((cor) => {
+                              const selecionada = field.value?.includes(cor.rotulo) ?? false
+                              return (
+                                <label
+                                  key={`${fieldItem.id}-${cor.valor}`}
+                                  className="flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm"
+                                >
+                                  <Checkbox
+                                    checked={selecionada}
+                                    onCheckedChange={(checado) => {
+                                      const proximo = new Set(field.value ?? [])
+                                      if (checado === true) {
+                                        proximo.add(cor.rotulo)
+                                      } else {
+                                        proximo.delete(cor.rotulo)
+                                      }
+                                      field.onChange(Array.from(proximo))
+                                    }}
+                                  />
+                                  <span>{cor.rotulo}</span>

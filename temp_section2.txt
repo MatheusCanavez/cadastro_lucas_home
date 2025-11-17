@@ -1,0 +1,130 @@
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="medidas"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Medidas</FormLabel>
+                    <div className="grid grid-cols-2 gap-3">
+                      {opcoesMedidas.map((opcao) => {
+                        const selecionada = field.value?.includes(opcao.valor) ?? false
+                        return (
+                          <label
+                            key={opcao.valor}
+                            className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm"
+                          >
+                            <Checkbox
+                              checked={selecionada}
+                              onCheckedChange={(checado) => {
+                                const proximo = new Set(field.value ?? [])
+                                if (checado === true) {
+                                  proximo.add(opcao.valor)
+                                } else {
+                                  proximo.delete(opcao.valor)
+                                }
+                                field.onChange(Array.from(proximo))
+                              }}
+                            />
+                            <span className="flex flex-col">
+                              <span className="font-medium">{opcao.rotulo}</span>
+                              <span className="text-xs text-muted-foreground">{opcao.dimensoes} cm</span>
+                            </span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-lg font-semibold">Variacoes de base</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Escolha os tipos de base e as cores disponiveis para cada combinacao.
+                  </p>
+                </div>
+
+                {fields.map((fieldItem, index) => (
+                  <div key={fieldItem.id} className="space-y-4 rounded-xl border p-4">
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Variacao #{index + 1}</FormLabel>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => remove(index)}
+                        disabled={fields.length === 1}
+                      >
+                        Remover
+                      </Button>
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name={`variacoesBase.${index}.descricao`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Descricao</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Escolha uma variacao" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {opcoesVariacoesBase.map((opcao) => (
+                                <SelectItem key={opcao.valor} value={opcao.valor}>
+                                  {opcao.rotulo}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`variacoesBase.${index}.cores`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cores</FormLabel>
+                          <div className="grid grid-cols-2 gap-3">
+                            {opcoesCoresBase.map((cor) => {
+                              const selecionada = field.value?.includes(cor.rotulo) ?? false
+                              return (
+                                <label
+                                  key={`${fieldItem.id}-${cor.valor}`}
+                                  className="flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm"
+                                >
+                                  <Checkbox
+                                    checked={selecionada}
+                                    onCheckedChange={(checado) => {
+                                      const proximo = new Set(field.value ?? [])
+                                      if (checado === true) {
+                                        proximo.add(cor.rotulo)
+                                      } else {
+                                        proximo.delete(cor.rotulo)
+                                      }
+                                      field.onChange(Array.from(proximo))
+                                    }}
+                                  />
+                                  <span>{cor.rotulo}</span>
+                                </label>
+                              )
+                            })}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ))}
