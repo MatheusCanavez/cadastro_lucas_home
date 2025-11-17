@@ -6,9 +6,9 @@ export interface OpcaoFormulario<T extends string = string> {
 }
 
 export const opcoesTipoProduto: OpcaoFormulario<TipoProduto>[] = [
-  { valor: "colchao", rotulo: "Colchao" },
+  { valor: "colchao", rotulo: "Colchão" },
   { valor: "baseBox", rotulo: "Base Box" },
-  { valor: "baseBoxBau", rotulo: "Base Box Bau" },
+  { valor: "baseBoxBau", rotulo: "Base Box Baú" },
 ]
 
 export const opcoesTipoColchao: OpcaoFormulario<TipoColchao>[] = [
@@ -82,7 +82,9 @@ export const opcoesMarcas: OpcaoMarca[] = [
   { codigo: "0066", rotulo: "Demonstração Amostra" },
   { codigo: "0067", rotulo: "Bed'S" },
   { codigo: "0068", rotulo: "Topazio" },
+  { codigo: "0071", rotulo: "Titanio" },
 ]
+
 
 export type CategoriaVariacao = "base" | "auxiliar"
 
@@ -107,8 +109,8 @@ export const opcoesVariacoesBase = [
   },
   {
     valor: "cama-box-bau",
-    rotulo: "Cama Box Bau",
-    baseLabel: "Cama Box Bau",
+    rotulo: "Cama Box Baú",
+    baseLabel: "Cama Box Baú",
     altura: 42,
     categoria: "base",
   },
@@ -134,8 +136,8 @@ export const opcoesVariacoesBase = [
   },
   {
     valor: "cama-box-bau-aux-espuma",
-    rotulo: "Cama Box Bau com Auxiliar de Espuma",
-    baseLabel: "Cama Box Bau",
+    rotulo: "Cama Box Baú com Auxiliar de Espuma",
+    baseLabel: "Cama Box Baú",
     altura: 44,
     auxiliarLabel: "Auxiliar de Espuma",
     exigeMedidaSolteiro: true,
@@ -144,8 +146,8 @@ export const opcoesVariacoesBase = [
   },
   {
     valor: "cama-box-bau-aux-molas",
-    rotulo: "Cama Box Bau com Auxiliar de Molas",
-    baseLabel: "Cama Box Bau",
+    rotulo: "Cama Box Baú com Auxiliar de Molas",
+    baseLabel: "Cama Box Baú",
     altura: 44,
     auxiliarLabel: "Auxiliar de Molas",
     exigeMedidaSolteiro: true,

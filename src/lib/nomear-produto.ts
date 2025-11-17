@@ -31,6 +31,7 @@ export interface DadosFormulario {
   medidas: Medida[]
   alturaColchao: number
   pillowOpcoes: string[]
+  pesosColchao: Partial<Record<Medida, number>>
   usarCamaBox: boolean
   usarCamaBoxBau: boolean
   coresBasePadrao: string[]
@@ -62,9 +63,34 @@ const mapaMedidas: Record<
 }
 
 const mapaTipoProduto: Record<TipoProduto, string> = {
-  colchao: "Colchao",
+  colchao: "Colchão",
   baseBox: "Base Box",
-  baseBoxBau: "Base Box Bau",
+  baseBoxBau: "Base Box Baú",
+}
+
+const pesoBaseCamaBox: Partial<Record<Medida, number>> = {
+  solteirinho: 18.6,
+  solteiro: 22.1,
+  solteiroKing: 24.1,
+  casal: 30,
+  queen: 39,
+  king: 48.2,
+}
+
+const pesoBaseCamaBoxBau: Partial<Record<Medida, number>> = {
+  solteirinho: 40.2,
+  solteiro: 42.9,
+  solteiroKing: 44.5,
+  casal: 58.5,
+  queen: 73,
+  king: 80.4,
+}
+
+const pesoAuxiliares: Partial<Record<ValorVariacaoBase, number>> = {
+  "cama-box-aux-espuma": 30,
+  "cama-box-aux-molas": 35,
+  "cama-box-bau-aux-espuma": 43.9,
+  "cama-box-bau-aux-molas": 57.9,
 }
 
 const normalizarEspacos = (texto: string) => texto.replace(/\s+/g, " ").trim()
@@ -91,6 +117,7 @@ export interface NomeColchao {
   alturaColchao: number
   cor: string
   corCodigo: string
+  peso: number
   nomeCompleto: string
 }
 
@@ -104,6 +131,7 @@ export function montarNomesColchoes(dados: DadosFormulario): NomeColchao[] {
   return dados.medidas.map((medida) => {
     const { rotulo, dimensoes } = mapaMedidas[medida]
     const corRotulo = mapaCores[dados.corColchao] ?? dados.corColchao
+    const peso = Number(dados.pesosColchao?.[medida] ?? 0)
     const nomeCompleto = normalizarEspacos(
       `${descricao} ${rotulo} ${dimensoes}x${dados.alturaColchao}cm - ${corRotulo}`,
     )
@@ -114,6 +142,7 @@ export function montarNomesColchoes(dados: DadosFormulario): NomeColchao[] {
       alturaColchao: dados.alturaColchao,
       cor: corRotulo,
       corCodigo: dados.corColchao,
+      peso,
       nomeCompleto,
     }
   })
@@ -130,6 +159,7 @@ export interface NomeKit {
   medida: Medida
   rotuloMedida: string
   dimensoes: string
+  pesoTotal: number
   nomeCompleto: string
 }
 
@@ -154,6 +184,17 @@ export function montarNomesKits(dados: DadosFormulario): NomeKit[] {
       const corRotulo = mapaCores[codigoCor] ?? codigoCor
       colchoesValidos.forEach((colchao) => {
         const alturaTotal = info.altura + colchao.alturaColchao
+        let pesoBase = 0
+        if (info.categoria === "base") {
+          if (info.valor === "cama-box") {
+            pesoBase = pesoBaseCamaBox[colchao.medida] ?? 0
+          } else if (info.valor === "cama-box-bau") {
+            pesoBase = pesoBaseCamaBoxBau[colchao.medida] ?? 0
+          }
+        } else {
+          pesoBase = pesoAuxiliares[info.valor] ?? 0
+        }
+        const pesoTotal = pesoBase + colchao.peso
         const auxiliarTexto = info.auxiliarLabel ? ` + ${info.auxiliarLabel}` : ""
         const nomeCompleto = normalizarEspacos(
           `${info.baseLabel} com ${descricao}${auxiliarTexto} ${colchao.rotuloMedida} ${colchao.dimensoes}x${alturaTotal}cm - ${corRotulo}`,
@@ -169,6 +210,7 @@ export function montarNomesKits(dados: DadosFormulario): NomeKit[] {
           medida: colchao.medida,
           rotuloMedida: colchao.rotuloMedida,
           dimensoes: colchao.dimensoes,
+          pesoTotal,
           nomeCompleto,
         })
       })
