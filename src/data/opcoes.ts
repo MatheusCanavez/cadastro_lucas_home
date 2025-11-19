@@ -57,6 +57,7 @@ export const opcoesPillow: OpcaoPillow[] = [
   { valor: "euroPillow", rotulo: "Euro Pillow", texto: "Euro Pillow" },
   { valor: "doubleFace", rotulo: "Double Face", texto: "Double Face" },
   { valor: "oneFace", rotulo: "One Face", texto: "One Face" },
+  { valor: "ultragel", rotulo: "Ultragel", texto: "Ultragel" },
 ]
 
 export interface OpcaoMarca {

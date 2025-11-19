@@ -40,8 +40,10 @@ const POSIPI_COLCHAO = "94042900"
 const POSIPI_KIT = "94042100"
 const PADRAO_XPRDSKU = "1"
 const PADRAO_XPRDPAI = ""
+const formatarComoTexto = (valor: string | number) => `${valor}`
+
 const CAMPOS_PADRAO = {
-  B1_ORIGEM: '="0"',
+  B1_ORIGEM: formatarComoTexto("0"),
   B1_RASTRO: "N",
   B1_UM: "UN",
   B1_LOCPAD: "1",
@@ -49,7 +51,7 @@ const CAMPOS_PADRAO = {
   B1_XQTVOL1: "1",
   B1_LOCALIZ: "N",
   B1_GRTRIB: "R94042",
-  B1_XCALAUT: '="2"',
+  B1_XCALAUT: formatarComoTexto("2"),
   B1_CONTA: "11501001",
 }
 const COLUNAS_CSV = [
@@ -353,7 +355,7 @@ export default function PaginaCadastro() {
           B1_XSUBGRU: formatarCodigoCor(colchao.corCodigo),
           B1_PESO: colchao.peso,
           B1_PESBRU: colchao.peso,
-          B1_CODBAR: `="${gerarEan13(codigoAnt)}"`,
+          B1_CODBAR: formatarComoTexto(gerarEan13(codigoAnt)),
           cor: colchao.cor,
           medida: colchao.rotuloMedida,
           dimensoes: colchao.dimensoes,
@@ -378,7 +380,7 @@ export default function PaginaCadastro() {
           B1_XSUBGRU: formatarCodigoCor(kit.corCodigo),
           B1_PESO: kit.pesoTotal,
           B1_PESBRU: kit.pesoTotal,
-          B1_CODBAR: `="${gerarEan13(codigoAnt)}"`,
+          B1_CODBAR: formatarComoTexto(gerarEan13(codigoAnt)),
           variacaoId: kit.variacaoId,
           auxiliar: kit.auxiliarLabel ?? null,
           descricaoBase: kit.descricaoBase,
