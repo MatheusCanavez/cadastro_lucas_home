@@ -1,21 +1,8 @@
-export type TipoProduto = "colchao" | "baseBox" | "baseBoxBau"
-export type TipoColchao =
-  | "espuma"
-  | "espumaD28"
-  | "espumaD33"
-  | "espumaD45"
-  | "espumaD60"
-  | "molasEnsacadas"
-export type Medida =
-  | "solteirinho"
-  | "solteiro"
-  | "solteiroKing"
-  | "casal"
-  | "queen"
-  | "king"
-
+import type { TipoProduto, TipoColchao, Medida } from "@/types/produto"
 import { opcoesCores, opcoesVariacoesBase, variacoesBasePadrao } from "@/data/opcoes"
 import type { ValorVariacaoBase } from "@/data/opcoes"
+import { pesoAuxiliares, pesoBaseCamaBox, pesoBaseCamaBoxBau } from "@/data/pesos"
+export type { TipoProduto, TipoColchao, Medida } from "@/types/produto"
 
 export interface VariacaoBase {
   variacaoId: ValorVariacaoBase
@@ -66,31 +53,6 @@ const mapaTipoProduto: Record<TipoProduto, string> = {
   colchao: "Colchão",
   baseBox: "Base Box",
   baseBoxBau: "Base Box Baú",
-}
-
-const pesoBaseCamaBox: Partial<Record<Medida, number>> = {
-  solteirinho: 18.6,
-  solteiro: 22.1,
-  solteiroKing: 24.1,
-  casal: 30,
-  queen: 39,
-  king: 48.2,
-}
-
-const pesoBaseCamaBoxBau: Partial<Record<Medida, number>> = {
-  solteirinho: 40.2,
-  solteiro: 42.9,
-  solteiroKing: 44.5,
-  casal: 58.5,
-  queen: 73,
-  king: 80.4,
-}
-
-const pesoAuxiliares: Partial<Record<ValorVariacaoBase, number>> = {
-  "cama-box-aux-espuma": 30,
-  "cama-box-aux-molas": 35,
-  "cama-box-bau-aux-espuma": 43.9,
-  "cama-box-bau-aux-molas": 57.9,
 }
 
 const normalizarEspacos = (texto: string) => texto.replace(/\s+/g, " ").trim()

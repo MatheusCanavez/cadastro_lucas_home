@@ -1,4 +1,4 @@
-import type { Medida, TipoColchao, TipoProduto } from "@/lib/nomear-produto"
+import type { Medida, TipoColchao, TipoProduto } from "@/types/produto"
 
 export interface OpcaoFormulario<T extends string = string> {
   valor: T

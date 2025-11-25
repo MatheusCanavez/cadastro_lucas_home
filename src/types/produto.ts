@@ -1,0 +1,15 @@
+export type TipoProduto = "colchao" | "baseBox" | "baseBoxBau"
+export type TipoColchao =
+  | "espuma"
+  | "espumaD28"
+  | "espumaD33"
+  | "espumaD45"
+  | "espumaD60"
+  | "molasEnsacadas"
+export type Medida =
+  | "solteirinho"
+  | "solteiro"
+  | "solteiroKing"
+  | "casal"
+  | "queen"
+  | "king"
